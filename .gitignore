@@ -1,0 +1,13 @@
+.build/
+build/
+dist/
+*.app
+*.dmg
+DerivedData/
+.DS_Store
+# Claudemon.xcodeproj IS committed (canonical project — open THIS, not the
+# folder). Ignore only the per-user state inside it and SwiftPM workspace cruft.
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+.swiftpm/
+Package.resolved
