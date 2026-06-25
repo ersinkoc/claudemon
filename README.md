@@ -5,7 +5,8 @@ subscription usage live**. It reads the same limits the Claude Code CLI reports
 and surfaces them in three places:
 
 - a compact gauge + session percentage in the **menu bar**,
-- an optional always-on-top **floating desktop window**, and
+- an optional always-on-top **floating desktop window** (double-click to toggle
+  a **mini session-only view**), and
 - a **Notification Center / desktop widget** (WidgetKit).
 
 It tracks the three limits Claude Code reports — **Current Session (5h)**,
@@ -19,9 +20,14 @@ absolute reset time in the limit's own timezone.
 
 ## Screenshots
 
-| Menu bar panel | Floating window |
-| :---: | :---: |
-| ![Menu bar panel](docs/menubar.png) | ![Floating desktop window](docs/floating.png) |
+| Menu bar panel | Floating window | Mini view |
+| :---: | :---: | :---: |
+| ![Menu bar panel](docs/menubar.png) | ![Floating desktop window](docs/floating.png) | ![Mini floating widget](docs/floating-mini.png) |
+
+The floating window has two forms: the **full view** (session ring + weekly bars
++ reset footer) and a **mini view** that shows just the session ring. **Double-click
+the floating window** to switch between them — the mini view is a smaller,
+glanceable indicator that stays out of the way; double-click again to return.
 
 ## Requirements
 
@@ -90,7 +96,8 @@ and installs the same Developer ID signed + notarized app. Update later with
 There is **no Dock icon** — Claudemon lives in the **menu bar** (top-right of the
 screen). Look for the gauge with a session percentage, e.g. `◐ 28%`. Click it to
 open the full panel, where you can toggle the floating window and "Launch at
-login."
+login." Once the floating window is on screen, **double-click it** to switch
+between the full and mini views.
 
 Because the app is notarized by Apple, it opens without a Gatekeeper warning. If
 macOS still complains (for example after copying it via an unusual route),
