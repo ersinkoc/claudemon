@@ -18,8 +18,8 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "1.1.1"
-    CURRENT_PROJECT_VERSION: "3"
+    MARKETING_VERSION: "1.1.2"
+    CURRENT_PROJECT_VERSION: "4"
     SWIFT_VERSION: "5.0"
     # Developer ID signing is applied EXPLICITLY, inside-out, by
     # scripts/release-dmg.sh (framework -> appex -> app), each with
@@ -89,7 +89,11 @@ targets:
         LD_RUNPATH_SEARCH_PATHS:
           - "@executable_path/../../../../Frameworks"
 
-  # ---- Parser / model tests (link the core) ---------------------------------
+  # ---- Parser / model + app launch-priming tests ----------------------------
+  # Hosted by the Claudemon app so `@testable import Claudemon` resolves (mirrors
+  # Package.swift's ClaudemonTests deps on BOTH ClaudemonCore and Claudemon).
+  # The app is a build-order dependency only (link: false) — symbol resolution
+  # for the app target comes from the host via TEST_HOST/BUNDLE_LOADER.
   ClaudemonTests:
     type: bundle.unit-test
     platform: macOS
@@ -97,9 +101,13 @@ targets:
       - path: Tests/ClaudemonTests
     dependencies:
       - target: ClaudemonCore
+      - target: Claudemon
+        link: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.claudemon.tests
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Claudemon.app/Contents/MacOS/Claudemon"
+        BUNDLE_LOADER: "$(TEST_HOST)"
 
 schemes:
   Claudemon:

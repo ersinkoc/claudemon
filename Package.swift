@@ -24,10 +24,10 @@ let package = Package(
             dependencies: ["ClaudemonCore"],
             path: "Sources/Claudemon"
         ),
-        // Parser/model tests, now pointed at ClaudemonCore.
+        // Parser/model tests, plus launch-priming tests for the app's UsageStore.
         .testTarget(
             name: "ClaudemonTests",
-            dependencies: ["ClaudemonCore"],
+            dependencies: ["ClaudemonCore", "Claudemon"],
             path: "Tests/ClaudemonTests"
         )
     ]

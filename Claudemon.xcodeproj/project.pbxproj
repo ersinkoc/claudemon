@@ -26,6 +26,7 @@
 		9D2D7E57983E01BE1FEAD5A4 /* UsageAlertPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26FF770B8BCB25AFCD46EB7D /* UsageAlertPolicy.swift */; };
 		A10C9555CF2808A9F8CCD9A9 /* ClaudemonWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 459E3693DDFAFD1B509D8287 /* ClaudemonWidgetView.swift */; };
 		A29F73F8818B522AA2204F56 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BEA929A31712388FE3F90DE4 /* Assets.xcassets */; };
+		A43CD52589C04149F8326DB8 /* UsageStorePrimingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0C6B4E84A875A622CE923C /* UsageStorePrimingTests.swift */; };
 		A4AECE324401ACDC6757EEFA /* ClaudeDiagnosticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10BA72909B03002307D8137F /* ClaudeDiagnosticsTests.swift */; };
 		A4F83B1FB601874BB45EF52E /* ClaudeLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAEC3854EB7ECCC35B5C1D5A /* ClaudeLocator.swift */; };
 		A54F6BB723B7CC55776B02CE /* UsageStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EC1E9A6A67C1BF90DCE77E /* UsageStore.swift */; };
@@ -42,6 +43,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		211C4CB020CBA1D7E97D004B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E414F1D8BB3E019C3BADB5B2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 66437C394DA9F97C527E32AF;
+			remoteInfo = Claudemon;
+		};
 		479C3CF7998995F780C4ABE3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E414F1D8BB3E019C3BADB5B2 /* Project object */;
@@ -116,6 +124,7 @@
 		247335CE4095196774DE3D4F /* ClaudemonWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClaudemonWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		26FF770B8BCB25AFCD46EB7D /* UsageAlertPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageAlertPolicy.swift; sourceTree = "<group>"; };
 		2AB740EC59C112CA31BEBB29 /* FloatingPanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPanelController.swift; sourceTree = "<group>"; };
+		2F0C6B4E84A875A622CE923C /* UsageStorePrimingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageStorePrimingTests.swift; sourceTree = "<group>"; };
 		432403682D9AA489409DBD20 /* UsageFormattingResetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageFormattingResetTests.swift; sourceTree = "<group>"; };
 		459E3693DDFAFD1B509D8287 /* ClaudemonWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudemonWidgetView.swift; sourceTree = "<group>"; };
 		4BA0DC0F49FF3C4CEA517A2D /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
@@ -194,6 +203,7 @@
 				432403682D9AA489409DBD20 /* UsageFormattingResetTests.swift */,
 				E332EBF7F9EDEF765937B6F7 /* UsageModelsCodableTests.swift */,
 				5434A37C3C294B8E17E8858C /* UsageParserTests.swift */,
+				2F0C6B4E84A875A622CE923C /* UsageStorePrimingTests.swift */,
 			);
 			path = ClaudemonTests;
 			sourceTree = "<group>";
@@ -303,6 +313,7 @@
 			);
 			dependencies = (
 				224A9CB95893A426C0B0029F /* PBXTargetDependency */,
+				89D7D69E22765E934BADF0B1 /* PBXTargetDependency */,
 			);
 			name = ClaudemonTests;
 			packageProductDependencies = (
@@ -462,6 +473,7 @@
 				D2D0F2A1B492A02A0A2314E1 /* UsageFormattingResetTests.swift in Sources */,
 				58759BD7F561EDDBF4F16A87 /* UsageModelsCodableTests.swift in Sources */,
 				AE3328B7A6FEAFF8D2567DD7 /* UsageParserTests.swift in Sources */,
+				A43CD52589C04149F8326DB8 /* UsageStorePrimingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -482,6 +494,11 @@
 			isa = PBXTargetDependency;
 			target = B0CBB2DDBBA49798C0894133 /* ClaudemonCore */;
 			targetProxy = FCFECDFC21D0DB72E2F854EF /* PBXContainerItemProxy */;
+		};
+		89D7D69E22765E934BADF0B1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 66437C394DA9F97C527E32AF /* Claudemon */;
+			targetProxy = 211C4CB020CBA1D7E97D004B /* PBXContainerItemProxy */;
 		};
 		B690D820E7B069D2AAE81DBF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -519,6 +536,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.claudemon.tests;
 				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Claudemon.app/Contents/MacOS/Claudemon";
 			};
 			name = Release;
 		};
@@ -560,7 +578,7 @@
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 3QKMW9HR59;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -580,7 +598,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -645,7 +663,7 @@
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 3QKMW9HR59;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -659,7 +677,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -728,6 +746,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.claudemon.tests;
 				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Claudemon.app/Contents/MacOS/Claudemon";
 			};
 			name = Debug;
 		};

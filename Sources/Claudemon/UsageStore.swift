@@ -63,20 +63,45 @@ final class UsageStore: ObservableObject {
     // Widget reload rate-limiting. Apple throttles widget reloads (~40-70/day),
     // so we only reload when the data meaningfully changed OR at most every 15
     // minutes. The menu bar / floating panel stay genuinely live regardless.
-    private let cache = SharedUsageCache.shared
+    private let cache: SharedUsageCache
     private let minReloadInterval: TimeInterval = 15 * 60
     private var lastReloadAt: Date?
     private var lastReloadedSnapshot: [UsageMetric.Kind: Int] = [:]
 
-    init() {
+    /// `cache` is injectable so tests can verify launch priming against a
+    /// temp-directory cache without the App Group entitlement. Production uses
+    /// the shared App Group cache.
+    init(cache: SharedUsageCache = .shared) {
+        self.cache = cache
         self.floatingEnabled = UserDefaults.standard.bool(forKey: Self.floatingDefaultsKey)
     }
 
     // MARK: - Lifecycle
 
     func start() {
+        // Seed last-good data from the cache BEFORE the first live fetch so the
+        // UI shows instantly and a first-fetch stale-render keeps this data
+        // instead of dropping back to the blank `.loading` placeholder.
+        primeFromCache()
         refresh()
         scheduleTimer()
+    }
+
+    /// Prime the store from the App Group cache on launch. Only acts from the
+    /// initial `.loading` state (never clobbers live data) and only when the
+    /// cache holds a usable report. This makes `lastGoodReport` non-nil before
+    /// any fetch completes, so a subsequent `noMetricsFound` stale-render is
+    /// kept as last-good rather than forced back to `.loading`.
+    /// Internal (not private) so the launch-priming behaviour is unit-testable.
+    func primeFromCache() {
+        guard case .loading = state else { return }
+        guard let cached = cache.read(), let report = cached.report else { return }
+        state = .staleRender(report)
+        // Use the report's own capture time (NOT cached.writtenAt). For a stale
+        // cache, writtenAt is stamped at the last FAILURE, which would make old
+        // data look freshly updated and suppress the "· stale" footer hint.
+        // Matching applySuccess keeps lastUpdated an honest "last capture" time.
+        lastUpdated = report.capturedAt
     }
 
     func stop() {

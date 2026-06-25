@@ -153,11 +153,17 @@ struct MenuPanelView: View {
     @ViewBuilder
     private var notificationSettings: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Toggle(isOn: $notifications.isEnabled) {
+            HStack {
                 Label("Usage alerts", systemImage: "bell")
+                    .accessibilityHidden(true)
+                Spacer(minLength: 8)
+                Toggle("", isOn: $notifications.isEnabled)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    .accessibilityLabel("Usage alerts")
             }
-            .toggleStyle(.switch)
-            .controlSize(.small)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             if notifications.isEnabled {
                 VStack(alignment: .leading, spacing: 4) {
@@ -193,6 +199,7 @@ struct MenuPanelView: View {
                 .transition(.opacity)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func openNotificationSettings() {
@@ -204,18 +211,30 @@ struct MenuPanelView: View {
     // MARK: - Footer
 
     private var footer: some View {
-        VStack(spacing: 10) {
-            Toggle(isOn: $store.floatingEnabled) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
                 Label("Floating widget", systemImage: "rectangle.on.rectangle")
+                    .accessibilityHidden(true)
+                Spacer(minLength: 8)
+                Toggle("", isOn: $store.floatingEnabled)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    .accessibilityLabel("Floating widget")
             }
-            .toggleStyle(.switch)
-            .controlSize(.small)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-            Toggle(isOn: $loginItem.isEnabled) {
+            HStack {
                 Label("Launch at login", systemImage: "power")
+                    .accessibilityHidden(true)
+                Spacer(minLength: 8)
+                Toggle("", isOn: $loginItem.isEnabled)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    .accessibilityLabel("Launch at login")
             }
-            .toggleStyle(.switch)
-            .controlSize(.small)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             notificationSettings
 
