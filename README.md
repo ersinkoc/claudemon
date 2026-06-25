@@ -61,6 +61,19 @@ but not signed in, the panel tells you to run `claude` in a terminal and use
 
 ## Install (for end users / friends)
 
+### Homebrew (recommended)
+
+```sh
+brew install --cask ardabalkandev/tap/claudemon
+```
+
+This taps [`ardabalkandev/homebrew-tap`](https://github.com/ardabalkandev/homebrew-tap)
+and installs the same Developer ID signed + notarized app. Update later with
+`brew upgrade --cask claudemon`, or remove it completely with
+`brew uninstall --zap --cask claudemon`.
+
+### Manual (DMG)
+
 1. Download `Claudemon.dmg` from the
    [GitHub Releases](../../releases) page.
 2. Open the DMG. A window appears with the **Claudemon** icon and an
