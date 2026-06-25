@@ -1,15 +1,45 @@
 import SwiftUI
 import ClaudemonCore
 
-/// Compact always-on-top widget content: a session ring + weekly bars.
+/// Compact always-on-top widget content. Renders one of two forms:
+/// - LARGE: a session ring + weekly bars + footer.
+/// - MINI:  just the session ring (percent + "SESSION").
+/// Double-clicking the panel toggles between them (wired in the controller).
 struct FloatingWidgetView: View {
+
+    /// Content sizes for each form, shared with `FloatingPanelController` so it
+    /// can resize the hosting panel to match the rendered form.
+    static let largeContentSize = CGSize(width: 210, height: 112)
+    static let miniContentSize = CGSize(width: 116, height: 116)
+
     @ObservedObject var store: UsageStore
 
     private var showOnboarding: Bool {
         !hasData && (store.isNotInstalled || store.isNotSignedIn)
     }
 
+    /// Onboarding has nothing meaningful to show in the mini ring, so it always
+    /// falls back to the large form.
+    private var isCompact: Bool { store.floatingCompact && !showOnboarding }
+
     var body: some View {
+        Group {
+            if isCompact {
+                miniBody
+            } else {
+                largeBody
+            }
+        }
+        // Allow dragging the borderless panel from anywhere on the surface.
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
+        .accessibilityHint("Double-click to switch between the mini and full view")
+    }
+
+    // MARK: - Large form
+
+    private var largeBody: some View {
         Group {
             if showOnboarding {
                 onboardingContent
@@ -25,16 +55,26 @@ struct FloatingWidgetView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .frame(width: 210, height: 112)
+        .frame(width: Self.largeContentSize.width, height: Self.largeContentSize.height)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
                 .strokeBorder(Color.primary.opacity(0.08))
         )
-        // Allow dragging the borderless panel from anywhere on the surface.
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilitySummary)
+    }
+
+    // MARK: - Mini form
+
+    /// A single, larger session ring centered in a compact rounded-square panel.
+    /// Reuses the exact ring rendering/colors of the large form.
+    private var miniBody: some View {
+        sessionRingView(diameter: 88, lineWidth: 9, percentFont: 24, labelFont: 10)
+            .frame(width: Self.miniContentSize.width, height: Self.miniContentSize.height)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(Color.primary.opacity(0.08))
+            )
     }
 
     // MARK: - Onboarding (calm)
@@ -63,34 +103,46 @@ struct FloatingWidgetView: View {
 
     // MARK: - Ring
 
+    /// The large form's session ring (preserved sizing).
     private var sessionRing: some View {
+        sessionRingView(diameter: 58, lineWidth: 7, percentFont: 17, labelFont: 8)
+    }
+
+    /// Shared session-ring rendering used by both the large and mini forms.
+    /// Same track/trim/color logic; only the dimensions and type scale differ.
+    private func sessionRingView(
+        diameter: CGFloat,
+        lineWidth: CGFloat,
+        percentFont: CGFloat,
+        labelFont: CGFloat
+    ) -> some View {
         ZStack {
             Circle()
-                .stroke(Color.primary.opacity(0.12), lineWidth: 7)
+                .stroke(Color.primary.opacity(0.12), lineWidth: lineWidth)
             Circle()
                 .trim(from: 0, to: CGFloat(min(sessionPercent, 100)) / 100.0)
                 .stroke(
                     UsageColor.color(for: sessionPercent),
-                    style: StrokeStyle(lineWidth: 7, lineCap: .round)
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
             VStack(spacing: 1) {
                 if hasData {
                     Text("\(sessionPercent)%")
-                        .font(.system(size: 17, weight: .bold).monospacedDigit())
+                        .font(.system(size: percentFont, weight: .bold).monospacedDigit())
                         .foregroundStyle(.primary)
                 } else {
                     Image(systemName: store.errorMessage != nil ? "exclamationmark.triangle" : "ellipsis")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: percentFont * 0.82, weight: .bold))
                         .foregroundStyle(.secondary)
                 }
                 Text("session")
-                    .font(.system(size: 8, weight: .medium))
+                    .font(.system(size: labelFont, weight: .medium))
                     .textCase(.uppercase)
                     .foregroundStyle(.secondary)
             }
         }
-        .frame(width: 58, height: 58)
+        .frame(width: diameter, height: diameter)
     }
 
     // MARK: - Right column

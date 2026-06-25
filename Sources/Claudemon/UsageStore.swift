@@ -45,7 +45,22 @@ final class UsageStore: ObservableObject {
     /// Callback fired when the floating toggle changes (wired by the app).
     var floatingChange: ((Bool) -> Void)?
 
+    /// Whether the floating widget shows the compact (mini) form rather than the
+    /// full form. Persisted in UserDefaults and toggled by a double-click on the
+    /// panel.
+    @Published var floatingCompact: Bool {
+        didSet {
+            UserDefaults.standard.set(floatingCompact, forKey: Self.floatingCompactKey)
+            floatingCompactChange?(floatingCompact)
+        }
+    }
+
+    /// Callback fired when the compact form toggles (wired by the panel
+    /// controller so it can resize the panel).
+    var floatingCompactChange: ((Bool) -> Void)?
+
     static let floatingDefaultsKey = "floatingWidgetEnabled"
+    static let floatingCompactKey = "floatingWidgetCompact"
     private let pollInterval: TimeInterval = 60
     private var timer: Timer?
     private var currentTask: Task<Void, Never>?
@@ -74,6 +89,7 @@ final class UsageStore: ObservableObject {
     init(cache: SharedUsageCache = .shared) {
         self.cache = cache
         self.floatingEnabled = UserDefaults.standard.bool(forKey: Self.floatingDefaultsKey)
+        self.floatingCompact = UserDefaults.standard.bool(forKey: Self.floatingCompactKey)
     }
 
     // MARK: - Lifecycle
