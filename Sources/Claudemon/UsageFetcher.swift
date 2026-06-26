@@ -65,11 +65,28 @@ struct UsageFetcher {
     /// the PATH prepend, but point PWD/OLDPWD at the neutral dir so claude does
     /// not scan the previous working directory.
     private static func neutralizedEnvironment(workingDir: URL) -> [String: String] {
-        var env = ProcessInfo.processInfo.environment
+        makeEnvironment(base: ProcessInfo.processInfo.environment, workingDir: workingDir)
+    }
+
+    /// Pure, injectable environment builder so the spawn env is unit-testable.
+    /// Given a base environment, apply the neutral directory anchors and PATH
+    /// prepend, and GUARANTEE USER/LOGNAME are present.
+    ///
+    /// Why USER/LOGNAME matter: the `claude` CLI silently returns a generic
+    /// empty body (exit 0, no metrics) when USER is absent from its environment.
+    /// Finder-launched apps inherit USER, but launchd / login-item processes
+    /// often get a minimal environment WITHOUT it — which made Claudemon hang on
+    /// "Waiting for usage data…" forever after a login launch. `NSUserName()`
+    /// returns the current user's short name even under launchd, so set it
+    /// unconditionally.
+    static func makeEnvironment(base: [String: String], workingDir: URL) -> [String: String] {
+        var env = base
         let extra = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
         env["PATH"] = (env["PATH"].map { "\(extra):\($0)" }) ?? extra
         env["PWD"] = workingDir.path
         env["OLDPWD"] = workingDir.path
+        env["USER"] = NSUserName()
+        env["LOGNAME"] = NSUserName()
         return env
     }
 

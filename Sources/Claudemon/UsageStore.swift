@@ -75,6 +75,23 @@ final class UsageStore: ObservableObject {
     private var acceleratedPollsRemaining = 0
     private var followUpWork: DispatchWorkItem?
 
+    // Cold-start escalation. On a fresh launch with no last-good report, a
+    // no-metrics body keeps us calmly in `.loading`. But if EVERY poll returns
+    // no metrics (e.g. the `claude` CLI returns an empty body forever), we'd be
+    // pinned at "Waiting for usage data…" indefinitely. Count consecutive cold
+    // misses (no last-good) and, past a threshold, surface a gentle, recoverable
+    // error instead. Any success or genuine failure resets the counter.
+    private let maxColdNoMetrics = 5
+    private var consecutiveColdNoMetrics = 0
+    // Wall-clock floor for cold escalation. The cold-miss count alone couples to
+    // the accelerated-poll cadence (it can reach the threshold in ~88s), which
+    // could falsely escalate a slow-but-healthy first load (the CLI refreshes its
+    // limit lines on a ~45-60s window). Require at least this much real time
+    // since polling began before surfacing a recoverable error. Fully
+    // recoverable: a later applySuccess still clears state/diagnostic/counter.
+    private let minColdEscalationDelay: TimeInterval = 120
+    private var startedAt: Date?
+
     // Widget reload rate-limiting. Apple throttles widget reloads (~40-70/day),
     // so we only reload when the data meaningfully changed OR at most every 15
     // minutes. The menu bar / floating panel stay genuinely live regardless.
@@ -95,6 +112,9 @@ final class UsageStore: ObservableObject {
     // MARK: - Lifecycle
 
     func start() {
+        // Stamp the polling start once so cold escalation can enforce a
+        // wall-clock floor independent of the accelerated-poll cadence.
+        if startedAt == nil { startedAt = Date() }
         // Seed last-good data from the cache BEFORE the first live fetch so the
         // UI shows instantly and a first-fetch stale-render keeps this data
         // instead of dropping back to the blank `.loading` placeholder.
@@ -128,6 +148,9 @@ final class UsageStore: ObservableObject {
         followUpWork?.cancel()
         followUpWork = nil
         acceleratedPollsRemaining = 0
+        // Reset the cold-miss counter so a refresh cancelled mid-flight can't
+        // leave a stray increment that carries across a sleep/wake cycle.
+        consecutiveColdNoMetrics = 0
         // Clear the in-flight flag so a later start() is never permanently
         // blocked by a refresh that was cancelled mid-flight.
         isRefreshing = false
@@ -176,6 +199,7 @@ final class UsageStore: ObservableObject {
     private func applySuccess(_ report: UsageReport) {
         // A genuine hit: cancel any accelerated follow-up and resume normal pace.
         acceleratedPollsRemaining = 0
+        consecutiveColdNoMetrics = 0
         followUpWork?.cancel()
         followUpWork = nil
 
@@ -200,8 +224,10 @@ final class UsageStore: ObservableObject {
     /// show a CALM state — never an error. Schedule a sooner follow-up poll to
     /// catch the next refresh window without hammering the CLI.
     private func applyStaleRender() {
-        diagnostic = nil   // calm: not an error
         if let report = lastGoodReport {
+            // Warm path: we have last-good data. Calm stale-render, unchanged.
+            diagnostic = nil   // calm: not an error
+            consecutiveColdNoMetrics = 0
             state = .staleRender(report)
             // Keep the cache "ok" with the last-good data; this isn't an error.
             // Preserve the ORIGINAL capture time so the widget's "as of" stays
@@ -209,9 +235,25 @@ final class UsageStore: ObservableObject {
             cache.write(CachedUsage(report: report, state: .ok,
                                     errorMessage: nil, writtenAt: report.capturedAt))
         } else {
-            // No data yet (e.g. right after launch before the first hit):
-            // stay in a neutral loading/waiting state, NOT an error.
-            state = .loading
+            // Cold path: no data yet (e.g. right after launch before the first
+            // hit). Normally stay in a neutral loading/waiting state, NOT an
+            // error. But if EVERY poll keeps returning no metrics we'd hang on
+            // "Waiting…" forever, so escalate after a few consecutive misses to
+            // a gentle, recoverable error. A later success clears it.
+            consecutiveColdNoMetrics += 1
+            // Escalate only when BOTH the miss count AND a wall-clock floor are
+            // met, so a normal slow startup never falsely surfaces an error.
+            let elapsed = startedAt.map { Date().timeIntervalSince($0) } ?? 0
+            if consecutiveColdNoMetrics >= maxColdNoMetrics,
+               elapsed >= minColdEscalationDelay {
+                let message = "Couldn't read usage. Try Refresh, or relaunch Claudemon."
+                diagnostic = .other(message)
+                state = .error(message)
+                cache.writeError(message)
+            } else {
+                diagnostic = nil   // calm: not an error yet
+                state = .loading
+            }
         }
         isRefreshing = false
         scheduleAcceleratedFollowUpIfNeeded()
@@ -224,6 +266,7 @@ final class UsageStore: ObservableObject {
     }
 
     private func applyFailure(_ error: Error) {
+        consecutiveColdNoMetrics = 0
         let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         diagnostic = Self.classify(error)
         // Preserve last good data as a (real) error-stale, if we have any.
