@@ -53,7 +53,7 @@ struct UsageProvider: TimelineProvider {
         UsageReport(metrics: [
             UsageMetric(kind: .session, rawLabel: "Session", percent: 27, resetDate: nil, timezoneIdentifier: nil),
             UsageMetric(kind: .weekAll, rawLabel: "Week", percent: 29, resetDate: nil, timezoneIdentifier: nil),
-            UsageMetric(kind: .weekSonnet, rawLabel: "Sonnet", percent: 2, resetDate: nil, timezoneIdentifier: nil)
+            UsageMetric(kind: .weekModel, rawLabel: "Current week (Fable)", percent: 2, resetDate: nil, timezoneIdentifier: nil)
         ], capturedAt: Date())
     }
 }

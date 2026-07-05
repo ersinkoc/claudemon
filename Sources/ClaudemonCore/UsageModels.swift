@@ -8,13 +8,16 @@ public struct UsageMetric: Identifiable, Equatable, Codable, Sendable {
     public enum Kind: String, CaseIterable, Codable, Sendable {
         case session
         case weekAll
-        case weekSonnet
+        /// The per-model weekly limit. Which model this tracks (Sonnet, Fable,
+        /// ...) is decided by Anthropic and shows up only in `rawLabel` — see
+        /// `UsageMetric.modelName`. Do not hardcode a model name here.
+        case weekModel
 
         public var displayName: String {
             switch self {
             case .session: return "Current Session (5h)"
             case .weekAll: return "Current Week (all models)"
-            case .weekSonnet: return "Current Week (Sonnet only)"
+            case .weekModel: return "Current Week (per model)"
             }
         }
 
@@ -22,7 +25,7 @@ public struct UsageMetric: Identifiable, Equatable, Codable, Sendable {
             switch self {
             case .session: return "Session"
             case .weekAll: return "Week"
-            case .weekSonnet: return "Sonnet"
+            case .weekModel: return "Model"
             }
         }
     }
@@ -49,6 +52,21 @@ public struct UsageMetric: Identifiable, Equatable, Codable, Sendable {
         guard let timezoneIdentifier else { return nil }
         return TimeZone(identifier: timezoneIdentifier)
     }
+
+    /// Best-effort model name for a `.weekModel` metric, extracted from the
+    /// parenthesized part of `rawLabel` (e.g. "Current week (Fable)" →
+    /// "Fable"). Falls back to the kind's generic short name if the label
+    /// doesn't have the expected shape.
+    public var modelName: String {
+        guard kind == .weekModel,
+              let open = rawLabel.firstIndex(of: "("),
+              let close = rawLabel.firstIndex(of: ")"), open < close else {
+            return kind.shortName
+        }
+        let inner = rawLabel[rawLabel.index(after: open)..<close]
+            .trimmingCharacters(in: .whitespaces)
+        return inner.isEmpty ? kind.shortName : inner
+    }
 }
 
 /// A complete usage report containing the three known metrics.
@@ -68,7 +86,7 @@ public struct UsageReport: Equatable, Codable, Sendable {
 
     public var session: UsageMetric? { metric(.session) }
     public var weekAll: UsageMetric? { metric(.weekAll) }
-    public var weekSonnet: UsageMetric? { metric(.weekSonnet) }
+    public var weekModel: UsageMetric? { metric(.weekModel) }
 }
 
 // MARK: - Formatting helpers

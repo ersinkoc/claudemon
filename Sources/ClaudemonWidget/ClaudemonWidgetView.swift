@@ -137,7 +137,7 @@ struct MediumUsageView: View {
     private func bar(for metric: UsageMetric) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack {
-                Text(metric.kind.shortName)
+                Text(metric.kind == .weekModel ? metric.modelName : metric.kind.shortName)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 Spacer()

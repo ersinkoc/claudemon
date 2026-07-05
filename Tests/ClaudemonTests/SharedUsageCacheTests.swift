@@ -52,15 +52,15 @@ final class SharedUsageCacheTests: XCTestCase {
             resetDate: date(2026, 6, 26, 9, 59, tz: "America/New_York"),
             timezoneIdentifier: "America/New_York"
         )
-        let weekSonnet = UsageMetric(
-            kind: .weekSonnet,
-            rawLabel: "Current week (Sonnet only)",
+        let weekModel = UsageMetric(
+            kind: .weekModel,
+            rawLabel: "Current week (Fable)",
             percent: 2,
             resetDate: date(2026, 6, 26, 10, 0, tz: "Asia/Tokyo"),
             timezoneIdentifier: "Asia/Tokyo"
         )
         return UsageReport(
-            metrics: [session, weekAll, weekSonnet],
+            metrics: [session, weekAll, weekModel],
             capturedAt: date(2026, 6, 23, 12, 0, tz: "Europe/Istanbul")
         )
     }
@@ -79,22 +79,22 @@ final class SharedUsageCacheTests: XCTestCase {
 
         let readReport = try XCTUnwrap(cached.report)
         XCTAssertEqual(readReport.metrics.count, 3)
-        XCTAssertEqual(readReport.metrics.map { $0.kind }, [.session, .weekAll, .weekSonnet])
+        XCTAssertEqual(readReport.metrics.map { $0.kind }, [.session, .weekAll, .weekModel])
 
         // Percents
         XCTAssertEqual(readReport.session?.percent, 27)
         XCTAssertEqual(readReport.weekAll?.percent, 29)
-        XCTAssertEqual(readReport.weekSonnet?.percent, 2)
+        XCTAssertEqual(readReport.weekModel?.percent, 2)
 
         // Reset dates (compared against the original report's dates)
         XCTAssertEqual(readReport.session?.resetDate, report.session?.resetDate)
         XCTAssertEqual(readReport.weekAll?.resetDate, report.weekAll?.resetDate)
-        XCTAssertEqual(readReport.weekSonnet?.resetDate, report.weekSonnet?.resetDate)
+        XCTAssertEqual(readReport.weekModel?.resetDate, report.weekModel?.resetDate)
 
         // Timezone identifiers
         XCTAssertEqual(readReport.session?.timezoneIdentifier, "Europe/Istanbul")
         XCTAssertEqual(readReport.weekAll?.timezoneIdentifier, "America/New_York")
-        XCTAssertEqual(readReport.weekSonnet?.timezoneIdentifier, "Asia/Tokyo")
+        XCTAssertEqual(readReport.weekModel?.timezoneIdentifier, "Asia/Tokyo")
 
         // Whole-report equality (covers rawLabel + capturedAt too)
         XCTAssertEqual(readReport, report)

@@ -54,8 +54,8 @@ final class UsageModelsCodableTests: XCTestCase {
 
     func testUsageMetricNilDateAndTimezoneRoundTrip() throws {
         let metric = UsageMetric(
-            kind: .weekSonnet,
-            rawLabel: "Current week (Sonnet only)",
+            kind: .weekModel,
+            rawLabel: "Current week (Fable)",
             percent: 0,
             resetDate: nil,
             timezoneIdentifier: nil
@@ -81,7 +81,7 @@ final class UsageModelsCodableTests: XCTestCase {
                 UsageMetric(kind: .weekAll, rawLabel: "wa", percent: 29,
                             resetDate: date(2026, 6, 26, 9, 59, tz: "America/New_York"),
                             timezoneIdentifier: "America/New_York"),
-                UsageMetric(kind: .weekSonnet, rawLabel: "ws", percent: 2,
+                UsageMetric(kind: .weekModel, rawLabel: "wm", percent: 2,
                             resetDate: date(2026, 6, 26, 10, 0, tz: "Asia/Tokyo"),
                             timezoneIdentifier: "Asia/Tokyo"),
             ],
@@ -95,7 +95,7 @@ final class UsageModelsCodableTests: XCTestCase {
         XCTAssertEqual(decoded.metrics.count, 3)
         XCTAssertEqual(decoded.session?.resetDate, report.session?.resetDate)
         XCTAssertEqual(decoded.weekAll?.timezoneIdentifier, "America/New_York")
-        XCTAssertEqual(decoded.weekSonnet?.timezoneIdentifier, "Asia/Tokyo")
+        XCTAssertEqual(decoded.weekModel?.timezoneIdentifier, "Asia/Tokyo")
         XCTAssertEqual(decoded, report)
     }
 

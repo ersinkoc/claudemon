@@ -11,8 +11,11 @@ and surfaces them in three places:
 - a **Notification Center / desktop widget** (WidgetKit).
 
 It tracks the three limits Claude Code reports — **Current Session (5h)**,
-**Current Week (all models)**, and **Current Week (Sonnet only)** — each with a
-labeled progress bar, the percent used, a `resets in Xh Ym` countdown, and the
+**Current Week (all models)**, and a **per-model current-week limit** (the
+label follows whichever model Anthropic is currently tracking there, e.g.
+**Current Week (Fable)** — this replaced the older **Current Week (Sonnet
+only)** wording after Anthropic added the Fable model) — each with a labeled
+progress bar, the percent used, a `resets in Xh Ym` countdown, and the
 absolute reset time in the limit's own timezone.
 
 > **Unofficial tool.** Claudemon is a third-party app and is **not affiliated
@@ -147,8 +150,13 @@ human-readable string), and tolerantly parses the three usage lines, e.g.:
 ```
 Current session: 28% used · resets Jun 24 at 2:49am (Europe/Istanbul)
 Current week (all models): 29% used · resets Jun 26 at 9:59am (Europe/Istanbul)
-Current week (Sonnet only): 2% used · resets Jun 26 at 10am (Europe/Istanbul)
+Current week (Fable): 2% used · resets Jun 26 at 10am (Europe/Istanbul)
 ```
+
+The third line's model name is read from the text, not hardcoded — Anthropic
+has already renamed it once (from "Sonnet only" to "Fable") as the model
+lineup changed, and Claudemon will keep tracking whatever name appears there
+without needing an update.
 
 The reset year is not present in the text, so Claudemon infers the nearest
 future occurrence using each line's IANA timezone (e.g. `Europe/Istanbul`).
@@ -215,7 +223,7 @@ entitlements.
 
 ```bash
 swift build   # debug build of ClaudemonCore + the app
-swift test    # runs the unit test suite (currently 50 tests)
+swift test    # runs the unit test suite (currently 87 tests)
 ```
 
 ### XcodeGen (optional regeneration fallback)

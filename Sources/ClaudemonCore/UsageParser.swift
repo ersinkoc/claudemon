@@ -31,7 +31,12 @@ public enum UsageParseError: Error, LocalizedError {
 /// Expected lines (order tolerant, wording tolerant):
 ///   Current session: 28% used · resets Jun 24 at 2:49am (Europe/Istanbul)
 ///   Current week (all models): 29% used · resets Jun 26 at 9:59am (Europe/Istanbul)
-///   Current week (Sonnet only): 2% used · resets Jun 26 at 10am (Europe/Istanbul)
+///   Current week (Fable): 2% used · resets Jun 26 at 10am (Europe/Istanbul)
+///
+/// The per-model line's model name is NOT hardcoded — Anthropic has already
+/// renamed it once (Sonnet → Fable) as the model lineup changed, so the
+/// classifier below treats any "week" line that isn't "all models" as the
+/// per-model kind, whatever name currently appears in the parentheses.
 ///
 /// Times may be "2:49am", "9:59am", or "10am" (no minutes). The year is not in
 /// the text and is inferred as the nearest future occurrence.
@@ -67,7 +72,7 @@ public enum UsageParser {
         guard !metrics.isEmpty else { throw UsageParseError.noMetricsFound }
 
         // Keep a stable, expected ordering.
-        let order: [UsageMetric.Kind] = [.session, .weekAll, .weekSonnet]
+        let order: [UsageMetric.Kind] = [.session, .weekAll, .weekModel]
         metrics.sort { a, b in
             (order.firstIndex(of: a.kind) ?? 99) < (order.firstIndex(of: b.kind) ?? 99)
         }
@@ -86,11 +91,12 @@ public enum UsageParser {
             return .session
         }
         if lower.contains("week") {
-            if lower.contains("sonnet") {
-                return .weekSonnet
+            if lower.contains("all models") {
+                return .weekAll
             }
-            // "all models" or anything else weekly that is not sonnet.
-            return .weekAll
+            // Any other weekly line names a specific model (Sonnet, Fable,
+            // whatever comes next) — do not hardcode which one.
+            return .weekModel
         }
         return nil
     }

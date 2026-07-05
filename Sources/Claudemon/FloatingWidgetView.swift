@@ -97,7 +97,9 @@ struct FloatingWidgetView: View {
 
     private var sessionPercent: Int { store.lastGoodReport?.session?.percent ?? 0 }
     private var weekPercent: Int { store.lastGoodReport?.weekAll?.percent ?? 0 }
-    private var sonnetPercent: Int { store.lastGoodReport?.weekSonnet?.percent ?? 0 }
+    private var weekModelMetric: UsageMetric? { store.lastGoodReport?.weekModel }
+    private var weekModelPercent: Int { weekModelMetric?.percent ?? 0 }
+    private var weekModelLabel: String { weekModelMetric?.modelName ?? UsageMetric.Kind.weekModel.shortName }
 
     private var hasData: Bool { store.lastGoodReport != nil }
 
@@ -150,7 +152,7 @@ struct FloatingWidgetView: View {
     private var weeklyColumn: some View {
         VStack(alignment: .leading, spacing: 9) {
             metricLine(label: "Week", percent: weekPercent)
-            metricLine(label: "Sonnet", percent: sonnetPercent)
+            metricLine(label: weekModelLabel, percent: weekModelPercent)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -228,7 +230,7 @@ struct FloatingWidgetView: View {
         if store.isNotInstalled { return "Claude Code isn't installed. Install the CLI to see usage." }
         if store.isNotSignedIn { return "Sign in to Claude Code. Run claude then slash login." }
         guard hasData else { return store.errorMessage ?? "Loading usage" }
-        var summary = "Session \(sessionPercent) percent, Week \(weekPercent) percent, Sonnet \(sonnetPercent) percent"
+        var summary = "Session \(sessionPercent) percent, Week \(weekPercent) percent, \(weekModelLabel) \(weekModelPercent) percent"
         if let session = store.lastGoodReport?.session, let resetDate = session.resetDate {
             summary += ", session resets at \(UsageFormatting.shortClockString(resetDate, timeZone: session.timezone))"
         }

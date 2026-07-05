@@ -26,11 +26,12 @@ final class UsageParserTests: XCTestCase {
         return cal.dateComponents([.year, .month, .day, .hour, .minute], from: date)
     }
 
-    // The real verified /usage result block.
+    // The real verified /usage result block (post Fable rollout — Anthropic
+    // renamed the per-model line from "(Sonnet only)" to "(Fable)").
     private let realResult = """
     Current session: 27% used · resets Jun 24 at 2:49am (Europe/Istanbul)
     Current week (all models): 29% used · resets Jun 26 at 9:59am (Europe/Istanbul)
-    Current week (Sonnet only): 2% used · resets Jun 26 at 10am (Europe/Istanbul)
+    Current week (Fable): 2% used · resets Jun 26 at 10am (Europe/Istanbul)
     """
 
     // MARK: - Real verified block
@@ -42,20 +43,21 @@ final class UsageParserTests: XCTestCase {
 
         XCTAssertEqual(report.metrics.count, 3, "Expected exactly 3 metrics")
 
-        // Ordering: session, weekAll, weekSonnet
-        XCTAssertEqual(report.metrics.map { $0.kind }, [.session, .weekAll, .weekSonnet])
+        // Ordering: session, weekAll, weekModel
+        XCTAssertEqual(report.metrics.map { $0.kind }, [.session, .weekAll, .weekModel])
 
         let session = try XCTUnwrap(report.session)
         let weekAll = try XCTUnwrap(report.weekAll)
-        let weekSonnet = try XCTUnwrap(report.weekSonnet)
+        let weekModel = try XCTUnwrap(report.weekModel)
 
         XCTAssertEqual(session.percent, 27)
         XCTAssertEqual(weekAll.percent, 29)
-        XCTAssertEqual(weekSonnet.percent, 2)
+        XCTAssertEqual(weekModel.percent, 2)
+        XCTAssertEqual(weekModel.modelName, "Fable", "Model name should be read from the label, not hardcoded")
 
         XCTAssertEqual(session.timezoneIdentifier, "Europe/Istanbul")
         XCTAssertEqual(weekAll.timezoneIdentifier, "Europe/Istanbul")
-        XCTAssertEqual(weekSonnet.timezoneIdentifier, "Europe/Istanbul")
+        XCTAssertEqual(weekModel.timezoneIdentifier, "Europe/Istanbul")
 
         // Session: Jun 24 2:49am Europe/Istanbul
         let sc = components(of: try XCTUnwrap(session.resetDate), tz: "Europe/Istanbul")
@@ -72,12 +74,28 @@ final class UsageParserTests: XCTestCase {
         XCTAssertEqual(wc.hour, 9)
         XCTAssertEqual(wc.minute, 59)
 
-        // Week sonnet: Jun 26 10am (no minutes → 00)
-        let sonc = components(of: try XCTUnwrap(weekSonnet.resetDate), tz: "Europe/Istanbul")
-        XCTAssertEqual(sonc.month, 6)
-        XCTAssertEqual(sonc.day, 26)
-        XCTAssertEqual(sonc.hour, 10)
-        XCTAssertEqual(sonc.minute, 0)
+        // Week model: Jun 26 10am (no minutes → 00)
+        let mc = components(of: try XCTUnwrap(weekModel.resetDate), tz: "Europe/Istanbul")
+        XCTAssertEqual(mc.month, 6)
+        XCTAssertEqual(mc.day, 26)
+        XCTAssertEqual(mc.hour, 10)
+        XCTAssertEqual(mc.minute, 0)
+    }
+
+    /// The classifier must not hardcode any specific model name — it should
+    /// treat ANY "Current week (<model>)" line (that isn't "all models") as
+    /// the per-model kind. This is a regression test for the bug where the
+    /// old parser only recognized lines containing the literal word "sonnet"
+    /// and silently dropped the line once Anthropic renamed it to "(Fable)".
+    func testPerModelLineIsGenericNotHardcodedToSonnet() throws {
+        for modelName in ["Sonnet only", "Fable", "Opus", "Haiku 4.5", "SomeFutureModelXYZ"] {
+            let text = "Current week (\(modelName)): 12% used · resets Jul 1 at 10am (Europe/Istanbul)"
+            let now = date(2026, 6, 23, 12, 0)
+            let report = try UsageParser.parse(resultText: text, now: now)
+            let m = try XCTUnwrap(report.weekModel, "Model line '\(modelName)' should classify as weekModel")
+            XCTAssertEqual(m.percent, 12)
+            XCTAssertEqual(m.modelName, modelName)
+        }
     }
 
     func testParsesViaOuterJSON() throws {
@@ -91,10 +109,10 @@ final class UsageParserTests: XCTestCase {
     // MARK: - Time format: no minutes (10am)
 
     func testNoMinutesVariantParses() throws {
-        let text = "Current week (Sonnet only): 5% used · resets Jul 1 at 10am (Europe/Istanbul)"
+        let text = "Current week (Fable): 5% used · resets Jul 1 at 10am (Europe/Istanbul)"
         let now = date(2026, 6, 23, 12, 0)
         let report = try UsageParser.parse(resultText: text, now: now)
-        let m = try XCTUnwrap(report.weekSonnet)
+        let m = try XCTUnwrap(report.weekModel)
         let c = components(of: try XCTUnwrap(m.resetDate), tz: "Europe/Istanbul")
         XCTAssertEqual(c.hour, 10)
         XCTAssertEqual(c.minute, 0)
@@ -271,13 +289,13 @@ final class UsageParserTests: XCTestCase {
         // Lines out of order, with leading garbage lines.
         let text = """
         Some banner text
-        Current week (Sonnet only): 2% used · resets Jun 26 at 10am (Europe/Istanbul)
+        Current week (Fable): 2% used · resets Jun 26 at 10am (Europe/Istanbul)
         Current session: 27% used · resets Jun 24 at 2:49am (Europe/Istanbul)
         Current week (all models): 29% used · resets Jun 26 at 9:59am (Europe/Istanbul)
         """
         let now = date(2026, 6, 23, 12, 0)
         let report = try UsageParser.parse(resultText: text, now: now)
-        XCTAssertEqual(report.metrics.map { $0.kind }, [.session, .weekAll, .weekSonnet],
+        XCTAssertEqual(report.metrics.map { $0.kind }, [.session, .weekAll, .weekModel],
                        "Output ordering must be stable regardless of input order")
     }
 }
