@@ -148,7 +148,7 @@ struct MediumUsageView: View {
             UsageBar(percent: metric.percent, height: 6)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(metric.kind.displayName), \(metric.percent) percent")
+        .accessibilityLabel("\(metric.displayLabel), \(metric.percent) percent")
     }
 }
 

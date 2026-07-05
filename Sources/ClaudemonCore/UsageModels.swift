@@ -67,6 +67,18 @@ public struct UsageMetric: Identifiable, Equatable, Codable, Sendable {
             .trimmingCharacters(in: .whitespaces)
         return inner.isEmpty ? kind.shortName : inner
     }
+
+    /// Full display label for headers/notifications/accessibility. Same as
+    /// `kind.displayName`, except for `.weekModel`, where it substitutes the
+    /// actual model name (e.g. "Current Week (Fable)") instead of the generic
+    /// "Current Week (per model)" placeholder. Use this instead of
+    /// `kind.displayName` anywhere a metric instance (not just its kind) is
+    /// available, so the shown text tracks whatever model Anthropic is
+    /// currently naming there.
+    public var displayLabel: String {
+        guard kind == .weekModel else { return kind.displayName }
+        return "Current Week (\(modelName))"
+    }
 }
 
 /// A complete usage report containing the three known metrics.

@@ -400,7 +400,7 @@ struct MetricRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack {
-                Text(metric.kind.displayName)
+                Text(metric.displayLabel)
                     .font(.subheadline.weight(.medium))
                 Spacer()
                 Text("\(metric.percent)%")
@@ -422,7 +422,7 @@ struct MetricRow: View {
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(metric.kind.displayName), \(metric.percent) percent used. \(resetDescription)")
+        .accessibilityLabel("\(metric.displayLabel), \(metric.percent) percent used. \(resetDescription)")
         .onReceive(ticker) { now = $0 }
     }
 

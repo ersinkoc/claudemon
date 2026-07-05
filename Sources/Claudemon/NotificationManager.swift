@@ -161,7 +161,7 @@ final class NotificationManager: ObservableObject {
     private func post(threshold: Threshold, metric: UsageMetric) {
         let content = UNMutableNotificationContent()
         content.title = "Claudemon"
-        content.subtitle = metric.kind.displayName
+        content.subtitle = metric.displayLabel
         content.body = threshold.bodyText
         content.sound = .default
 
